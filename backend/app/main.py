@@ -4,8 +4,11 @@ from fastapi.responses import FileResponse
 from typing import List
 
 from app.models import GenericItem
-from app.adapters.mock import MockAdapter
+from app.adapters.grocy import GrocyAdapter
+
+
 from app.services.label_service import create_label_pdf
+from app.services.template_service import get_templates
 
 app = FastAPI(title="Label App API")
 
@@ -19,7 +22,7 @@ app.add_middleware(
 )
 
 # --- Adapter instantie ---
-adapter = MockAdapter()
+adapter = GrocyAdapter()
 
 
 # --- Health check ---
@@ -48,25 +51,31 @@ async def get_item(item_id: str):
 
 
 # --- Label generation endpoint ---
+from pydantic import BaseModel
+
+
+class LabelRequest(BaseModel):
+    item_ids: List[str]
+    template: str
+
+
 @app.post("/api/labels/generate")
-async def generate_labels(item_ids: List[str]):
+async def generate_labels(request: LabelRequest):
 
     items = []
 
-    for item_id in item_ids:
-        try:
-            item = await adapter.get_item(item_id)
-            items.append(item)
-        except ValueError:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Item {item_id} not found"
-            )
+    for item_id in request.item_ids:
+        item = await adapter.get_item(item_id)
+        items.append(item)
 
-    pdf_path = create_label_pdf(items)
+    pdf_path = create_label_pdf(items, request.template)
 
     return FileResponse(
         path=pdf_path,
         media_type="application/pdf",
         filename="labels.pdf"
     )
+
+@app.get("/api/templates")
+async def list_templates():
+    return get_templates()
