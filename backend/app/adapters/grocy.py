@@ -18,37 +18,66 @@ class GrocyAdapter(BaseAdapter):
     async def list_items(self) -> List[GenericItem]:
 
         async with httpx.AsyncClient() as client:
-            products_response = await client.get(
-                f"{self.base_url}/api/objects/products",
-                headers=self.headers
-            )
-            products_response.raise_for_status()
-            products = products_response.json()
 
-            stock_response = await client.get(
-                f"{self.base_url}/api/stock",
-                headers=self.headers
-            )
-            stock_response.raise_for_status()
-            stock_items = stock_response.json()
+            # Products
+            products = (
+                await client.get(
+                    f"{self.base_url}/api/objects/products",
+                    headers=self.headers
+                )
+            ).json()
 
-        # Map stock by product_id
-        stock_map = {}
-        for stock in stock_items:
-            stock_map[stock["product_id"]] = stock
+            # Locations
+            locations = (
+                await client.get(
+                    f"{self.base_url}/api/objects/locations",
+                    headers=self.headers
+                )
+            ).json()
+
+            # Product barcodes
+            product_barcodes = (
+                await client.get(
+                    f"{self.base_url}/api/objects/product_barcodes",
+                    headers=self.headers
+                )
+            ).json()
+
+        # Map location_id → name
+        location_map = {
+            location["id"]: location["name"]
+            for location in locations
+        }
+
+        # Map product_id → first barcode
+        barcode_map = {}
+
+        for entry in product_barcodes:
+            product_id = entry.get("product_id")
+            barcode = entry.get("barcode")
+
+            if product_id and barcode:
+                # Only first barcode per product
+                if product_id not in barcode_map:
+                    barcode_map[product_id] = barcode
 
         items = []
 
         for product in products:
+
             product_id = product["id"]
 
-            stock_info = stock_map.get(product_id)
-
             location_name = None
-            if stock_info and stock_info.get("location"):
-                location_name = stock_info["location"]["name"]
+            location_id = product.get("location_id")
+            if location_id:
+                location_name = location_map.get(location_id)
 
-            barcode = product.get("barcode")
+            # Real barcode if available
+            barcode = barcode_map.get(product_id)
+
+            # Fallback to Grocy product code
+            if not barcode:
+                barcode = f"grcy:p:{product_id}"
 
             items.append(
                 GenericItem(
