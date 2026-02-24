@@ -1,21 +1,16 @@
 import subprocess
 import tempfile
+import os
 from typing import List
 
 from app.models import GenericItem
 from app.services.csv_exporter import generate_csv
 
 
-def create_label_pdf(items: List[GenericItem]) -> str:
-    """
-    Generates CSV from items and calls glabels-3-batch
-    Returns path to generated PDF
-    """
+def create_label_pdf(items: List[GenericItem], template_name: str) -> str:
 
-    # 1️⃣ Generate CSV
     csv_path = generate_csv(items)
 
-    # 2️⃣ Prepare output PDF file
     output_pdf = tempfile.NamedTemporaryFile(
         delete=False,
         suffix=".pdf"
@@ -23,22 +18,28 @@ def create_label_pdf(items: List[GenericItem]) -> str:
     output_pdf_path = output_pdf.name
     output_pdf.close()
 
-    # 3️⃣ Path to your template
-    # ⚠️ IMPORTANT: adjust this to your real template location
-    template_path = "57mmx32mm_template.glabels"
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    template_path = os.path.join(BASE_DIR, template_name)
 
-    # 4️⃣ Call glabels
-    try:
-        subprocess.run(
-            [
-                "glabels-3-batch",
-                "--template", template_path,
-                "--data", csv_path,
-                "--output", output_pdf_path
-            ],
-            check=True
+    if not os.path.exists(template_path):
+        raise RuntimeError(f"Template not found: {template_path}")
+
+    result = subprocess.run(
+        [
+            "glabels-3-batch",
+            "--input", csv_path,
+            "--output", output_pdf_path,
+            template_path
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Return code: {result.returncode}\n"
+            f"STDOUT:\n{result.stdout}\n"
+            f"STDERR:\n{result.stderr}"
         )
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"gLabels failed: {e}")
 
     return output_pdf_path
