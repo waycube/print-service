@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - label-generator
+      - glabels-templates
+      # - grocy
+      # - office
+
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - "5173:5173"
+  #   depends_on:
+  #     - backend
+
+  # grocy:
+  #   build: ./services/grocy
+
+  # office:
+  #   build: ./services/office
+
+  label-generator:
+    build: ./services/label-generator
+    ports:
+      - "8002:8000"
+    depends_on:
+      - glabels-templates
+
+  glabels-templates:
+    build: ./services/glabels-templates
+    ports:
+      - "8003:8000"
