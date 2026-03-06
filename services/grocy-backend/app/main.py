@@ -6,9 +6,9 @@ from pydantic import BaseModel
 
 from app.models import GenericItem
 from app.adapters.grocy import GrocyAdapter
-from app.services.label_service import create_label_pdf
+from shared.label_core.label_service import create_label_pdf
 from app.services.template_service import get_templates
-from app.services.print_service import print_pdf
+from shared.print_core.print_service import print_pdf
 
 app = FastAPI(title="Label App API")
 
