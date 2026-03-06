@@ -3,14 +3,21 @@ import tempfile
 import os
 from typing import List
 
-from app.models import GenericItem
-from app.services.csv_exporter import generate_csv
+from shared.label_core.csv_exporter import generate_csv
 
 
-def create_label_pdf(items: List[GenericItem], template_name: str) -> str:
+def create_label_pdf(items: List, template_name: str) -> str:
+    """
+    Generates a PDF using glabels.
+    template_name should include subfolder, e.g.:
+        "grocy/57x32-grocy.glabels"
+        "waycube/paid_label.glabels"
+    """
 
+    # Generate CSV
     csv_path = generate_csv(items)
 
+    # Create temp output PDF
     output_pdf = tempfile.NamedTemporaryFile(
         delete=False,
         suffix=".pdf"
@@ -18,12 +25,21 @@ def create_label_pdf(items: List[GenericItem], template_name: str) -> str:
     output_pdf_path = output_pdf.name
     output_pdf.close()
 
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    template_path = os.path.join(BASE_DIR, template_name)
+    # Determine project root (label-system/)
+    PROJECT_ROOT = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../")
+    )
+
+    # Templates directory
+    TEMPLATE_DIR = os.path.join(PROJECT_ROOT, "templates")
+
+    # Full template path (includes subfolder)
+    template_path = os.path.join(TEMPLATE_DIR, template_name)
 
     if not os.path.exists(template_path):
         raise RuntimeError(f"Template not found: {template_path}")
 
+    # Run glabels
     result = subprocess.run(
         [
             "glabels-3-batch",
