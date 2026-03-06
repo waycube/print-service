@@ -12,18 +12,29 @@ services:
       # - grocy
       # - office
 
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "5173:5173"
-  #   depends_on:
-  #     - backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    env_file:
+      - ./frontend/.env.docker
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
 
-  # grocy:
-  #   build: ./services/grocy
+  grocy:
+    build: ./services/grocy
+    ports:
+      - "8005:8000"
+    environment:
+      GROCY_URL: "http://grocy.app.lan/api"
+      GROCY_API_KEY: "uCZnD4sXW12WgDVk3p3ujasVZgQl2KiBKvLJRa8jwRom1UdFI5"
 
-  # office:
-  #   build: ./services/office
+  office:
+    build: ./services/office
+    ports:
+      - "8004:8000"
 
   label-generator:
     build: ./services/label-generator
