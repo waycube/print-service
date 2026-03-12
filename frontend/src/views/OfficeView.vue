@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
 
-const API_BASE = "http://localhost:8000"
+const BACKEND_API = "http://backend:8000"
 
 const templates = ref<string[]>([])
 const selectedTemplate = ref<string>("")
@@ -14,7 +14,7 @@ const error = ref<string | null>(null)
 
 onMounted(async () => {
   try {
-    const templateResponse = await fetch(`${API_BASE}/templates`)
+    const templateResponse = await fetch(`${BACKEND_API}/templates`)
     const allTemplates = await templateResponse.json()
 
     // Filter only office templates
@@ -37,7 +37,7 @@ async function handleGenerate() {
 
   if (!selectedTemplate.value) return
 
-  const response = await fetch(`${API_BASE}/generate`, {
+  const response = await fetch(`${BACKEND_API}/generate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
