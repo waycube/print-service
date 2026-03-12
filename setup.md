@@ -27,7 +27,14 @@ This is setup in a microservices
 
 This is a vue front-end application that communicates with the backend. It takes in user inputs and shows information to the user
 
+uses:
+Vue 3
+PrimeVue
+Tailwind
+
 ### Backend service
+
+fastapi
 
 This is the main backend service. It serves and takes in information from and to the frontend and communicates with the other services.
 
