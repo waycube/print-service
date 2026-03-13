@@ -3,7 +3,7 @@ This printer system does the following:
 It prints labels premade designed templates with glabels.
 
 This is setup in a microservices
-- vue frontend:
+- vue frontend: takes in user input and show information to user. talks to the backend.
 - backend: serves information to the frontend. communicates with the other services in order to generate and print the label.
 
 - glabels-templates: this offers the glabels templates to the backend
@@ -31,6 +31,7 @@ uses:
 Vue 3
 PrimeVue
 Tailwind
+
 
 ### Backend service
 

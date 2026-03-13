@@ -9,7 +9,8 @@ services:
     depends_on:
       - label-generator
       - glabels-templates
-      # - grocy
+      - csv-generator
+      - grocy
       # - office
 
   frontend:
@@ -29,6 +30,11 @@ services:
       GROCY_URL: "http://grocy.app.lan/api"
       GROCY_API_KEY: "uCZnD4sXW12WgDVk3p3ujasVZgQl2KiBKvLJRa8jwRom1UdFI5"
 
+
+  csv-generator:
+    build: ./services/csv-generator
+    ports:
+      - "8004:8000"
 
 
   label-generator:
